@@ -116,12 +116,10 @@ enum TerminalMaterialStyle: Equatable {
 private class TerminalMaterialView: NSView {
     private struct MaterialBackground: View {
         let style: TerminalMaterialStyle
-        let cornerRadius: CGFloat
 
         var body: some View {
             Rectangle()
                 .fill(style.shapeStyle)
-                .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
         }
     }
 
@@ -129,7 +127,7 @@ private class TerminalMaterialView: NSView {
     private let tintOverlay: NSView
 
     init() {
-        self.hostingView = NSHostingView(rootView: .init(style: .regular, cornerRadius: 0))
+        self.hostingView = NSHostingView(rootView: .init(style: .regular))
         self.tintOverlay = NSView()
         super.init(frame: .zero)
 
@@ -166,14 +164,28 @@ private class TerminalMaterialView: NSView {
         backgroundColor: NSColor,
         backgroundOpacity: Double,
         cornerRadius: CGFloat?,
+        roundTopCorners: Bool,
         isKeyWindow: Bool
     ) {
         let radius = cornerRadius ?? 0
-        hostingView.rootView = .init(style: style, cornerRadius: radius)
+        hostingView.rootView = .init(style: style)
 
         wantsLayer = true
         layer?.cornerRadius = radius
         layer?.masksToBounds = true
+        layer?.maskedCorners = if roundTopCorners {
+            [
+                .layerMinXMinYCorner,
+                .layerMaxXMinYCorner,
+                .layerMinXMaxYCorner,
+                .layerMaxXMaxYCorner,
+            ]
+        } else {
+            [
+                .layerMinXMinYCorner,
+                .layerMaxXMinYCorner,
+            ]
+        }
 
         tintOverlay.layer?.backgroundColor = backgroundColor.withAlphaComponent(backgroundOpacity).cgColor
         updateKeyStatus(isKeyWindow, backgroundColor: backgroundColor)
@@ -362,6 +374,7 @@ extension TerminalViewContainer {
                     backgroundColor: derivedConfig.backgroundColor,
                     backgroundOpacity: derivedConfig.backgroundOpacity,
                     cornerRadius: derivedConfig.cornerRadius,
+                    roundTopCorners: derivedConfig.roundTopCorners,
                     isKeyWindow: window?.isKeyWindow ?? true
                 )
             } else {
@@ -413,6 +426,7 @@ extension TerminalViewContainer {
         let backgroundColor: NSColor
         let backgroundOpacity: Double
         let cornerRadius: CGFloat?
+        let roundTopCorners: Bool
 
         init?(config: Ghostty.Config, preferredBackgroundColor: NSColor?, cornerRadius: CGFloat?) {
             switch config.backgroundBlur {
@@ -441,6 +455,12 @@ extension TerminalViewContainer {
             self.backgroundColor = preferredBackgroundColor ?? NSColor(config.backgroundColor)
             self.backgroundOpacity = config.backgroundOpacity
             self.cornerRadius = cornerRadius
+            self.roundTopCorners = switch config.macosTitlebarStyle {
+            case .transparent, .tabs:
+                false
+            default:
+                true
+            }
         }
     }
 }
