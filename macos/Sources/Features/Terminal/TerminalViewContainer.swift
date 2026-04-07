@@ -435,19 +435,14 @@ extension TerminalViewContainer {
             case .macosGlassClear:
                 style = .glass(.clear)
             case .macosMaterialRegular:
-                guard #available(macOS 12.0, *) else { return nil }
                 style = .material(.regular)
             case .macosMaterialThick:
-                guard #available(macOS 12.0, *) else { return nil }
                 style = .material(.thick)
             case .macosMaterialThin:
-                guard #available(macOS 12.0, *) else { return nil }
                 style = .material(.thin)
             case .macosMaterialUltraThin:
-                guard #available(macOS 12.0, *) else { return nil }
                 style = .material(.ultraThin)
             case .macosMaterialUltraThick:
-                guard #available(macOS 12.0, *) else { return nil }
                 style = .material(.ultraThick)
             default:
                 return nil
